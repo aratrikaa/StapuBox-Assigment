@@ -281,6 +281,28 @@ unfiltered search and web search covers the rest.
 
 ---
 
+## Deployment
+
+`render.yaml` at the repo root is a [Render](https://render.com) Blueprint — it defines the
+build/start commands and every env var from the table above, so standing up a live instance
+is mostly clicking through Render's dashboard rather than configuring anything by hand:
+
+1. Push this repo to GitHub (already done if you're reading this from there).
+2. On Render: **New +** → **Blueprint** → connect the repo. It reads `render.yaml` automatically.
+3. Render will prompt for `GROQ_API_KEY` specifically (it's marked `sync: false` in the
+   blueprint so it's never read from the repo) — paste your key there.
+4. Deploy. First boot re-seeds ChromaDB same as a fresh local run.
+
+Two things worth knowing about the free tier specifically:
+- **Storage is ephemeral.** `app/data/` resets on every deploy and on the periodic restarts
+  Render does for free services. That's fine here by design — Chroma re-seeds itself and the
+  freshness history is meant to be disposable — but don't expect history to persist across
+  restarts the way it does on a long-running local instance.
+- **Free services spin down when idle** and cold-start on the next request, so the first load
+  after a quiet period can take 30–60 seconds before the page appears.
+
+---
+
 ## Testing
 
 50 tests, no API key and no network. A stub client stands in for the model, so the real

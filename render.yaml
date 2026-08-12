@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: stapubox-sports-agent
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.0
+      # Set for real in the Render dashboard after the first deploy — never
+      # committed to the repo. sync: false means Render prompts for it
+      # instead of expecting a value here.
+      - key: GROQ_API_KEY
+        sync: false
+      - key: SPORTS_AGENT_MODEL
+        value: openai/gpt-oss-20b
+      - key: SPORTS_AGENT_RESEARCH_MODEL
+        value: groq/compound-mini
+      - key: SPORTS_AGENT_TEMPERATURE
+        value: "0.6"
+      - key: SPORTS_AGENT_REASONING_EFFORT
+        value: low
+      - key: CHROMA_DIR
+        value: app/data/chroma
+      - key: HISTORY_DB
+        value: app/data/history.sqlite3
+      - key: DEDUPE_THRESHOLD
+        value: "0.55"
+      - key: ENABLE_WEB_SEARCH
+        value: "1"
+      - key: SPORTS_AGENT_MAX_CONCURRENCY
+        value: "2"
