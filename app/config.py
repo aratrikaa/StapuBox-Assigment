@@ -8,6 +8,16 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+# ChromaDB's default embedding function caches its downloaded ONNX model at a
+# HARDCODED `Path.home() / ".cache" / "chroma" / ...` — not something either
+# CHROMA_DIR or HISTORY_DB controls. On a serverless host (Vercel, and likely
+# others) only /tmp is writable, so an unwritable $HOME crashes the app
+# before it ever serves a request. /tmp always exists and is always writable
+# on POSIX; on Windows Path.home() doesn't consult $HOME at all, so this is a
+# no-op for local dev.
+if os.name == "posix":
+    os.environ["HOME"] = "/tmp"
+
 load_dotenv()
 
 ROOT = Path(__file__).resolve().parent.parent
