@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import pytest  # noqa: E402
 
-from app.config import _bool, _env  # noqa: E402
+from app.config import _bool, _env, _writable  # noqa: E402
 
 
 def test_env_falls_back_on_missing_var(monkeypatch):
@@ -53,6 +53,27 @@ def test_bool_falls_back_on_blank_var(monkeypatch):
 def test_bool_still_parses_real_values(monkeypatch):
     monkeypatch.setenv("ENABLE_WEB_SEARCH", "0")
     assert _bool("ENABLE_WEB_SEARCH", True) is False
+
+
+def test_writable_keeps_the_configured_path_when_it_actually_works(tmp_path):
+    configured = tmp_path / "chroma"
+    result = _writable(configured, is_dir=True, tmp_name="unused-fallback")
+    assert result == configured
+    assert configured.is_dir()
+
+
+def test_writable_falls_back_when_the_configured_path_cant_be_created(tmp_path):
+    """Regression test for the exact production crash: CHROMA_DIR resolved
+    to a read-only location (a serverless deployment bundle outside /tmp),
+    and mkdir raised OSError before the app could serve a single request."""
+    blocker = tmp_path / "not_a_directory"
+    blocker.write_text("x")  # a file sitting where a directory is expected
+    configured = blocker / "chroma"  # mkdir must fail: a path component is a file
+
+    result = _writable(configured, is_dir=True, tmp_name="test-chroma-fallback")
+
+    assert result != configured
+    assert result.is_dir()
 
 
 if __name__ == "__main__":

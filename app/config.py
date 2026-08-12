@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+import logging
 import os
+import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from dotenv import load_dotenv
+
+log = logging.getLogger(__name__)
 
 # ChromaDB's default embedding function caches its downloaded ONNX model at a
 # HARDCODED `Path.home() / ".cache" / "chroma" / ...` — not something either
@@ -50,6 +54,35 @@ def _path(name: str, default: str) -> Path:
     return p if p.is_absolute() else ROOT / p
 
 
+def _writable(configured: Path, *, is_dir: bool, tmp_name: str) -> Path:
+    """Use `configured` if its directory is actually writable; otherwise
+    fall back to the OS temp dir and keep going.
+
+    A serverless host's deployment bundle is read-only outside of a temp
+    directory — CHROMA_DIR / HISTORY_DB are meant to be pointed at that temp
+    directory via env vars there, but a misconfigured or unset override
+    crashed the whole app on `mkdir` before it could serve a single request.
+    Checking and falling back here means a wrong or missing env var degrades
+    to disposable temp storage instead of an outright crash, on any host.
+    """
+    check_dir = configured if is_dir else configured.parent
+    try:
+        check_dir.mkdir(parents=True, exist_ok=True)
+        probe = check_dir / ".write_test"
+        probe.touch()
+        probe.unlink()
+        return configured
+    except OSError:
+        fallback = Path(tempfile.gettempdir()) / tmp_name
+        (fallback if is_dir else fallback.parent).mkdir(parents=True, exist_ok=True)
+        log.warning(
+            "%s isn't writable — falling back to %s. Set the env var to a "
+            "writable path (e.g. /tmp/...) to avoid this on a serverless host.",
+            configured, fallback,
+        )
+        return fallback
+
+
 def _real_key(raw: str | None) -> str | None:
     """Reject the .env.example placeholder so it can't masquerade as a real key."""
     if not raw or raw.strip() in {"", "gsk_...", "your-api-key"}:
@@ -83,8 +116,18 @@ class Settings:
         default_factory=lambda: _env("SPORTS_AGENT_REASONING_EFFORT", "low")
     )
 
-    chroma_dir: Path = field(default_factory=lambda: _path("CHROMA_DIR", "app/data/chroma"))
-    history_db: Path = field(default_factory=lambda: _path("HISTORY_DB", "app/data/history.sqlite3"))
+    chroma_dir: Path = field(
+        default_factory=lambda: _writable(
+            _path("CHROMA_DIR", "app/data/chroma"), is_dir=True, tmp_name="chroma"
+        )
+    )
+    history_db: Path = field(
+        default_factory=lambda: _writable(
+            _path("HISTORY_DB", "app/data/history.sqlite3"),
+            is_dir=False,
+            tmp_name="history.sqlite3",
+        )
+    )
     dedupe_threshold: float = field(
         default_factory=lambda: float(_env("DEDUPE_THRESHOLD", "0.55"))
     )
