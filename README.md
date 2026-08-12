@@ -283,6 +283,34 @@ unfiltered search and web search covers the rest.
 
 ## Deployment
 
+Two free hosting options are set up. **Vercel is the recommended one** — its free Hobby tier
+gives 2GB RAM and a 300-second function timeout, comfortably covering both this app's
+ChromaDB embedding model and its slower rate-limited generation calls. Render's free tier
+caps at 512MB, which the embedding model alone can exceed at startup.
+
+### Vercel
+
+`vercel.json` sets the function's `maxDuration` to Vercel's Hobby maximum (300s). Vercel
+auto-detects `app/main.py`'s top-level `app` object as the entrypoint — no other config needed.
+
+1. Push this repo to GitHub (already done if you're reading this from there).
+2. On [vercel.com](https://vercel.com): **Add New** → **Project** → import the repo. It
+   auto-detects the Python/FastAPI framework.
+3. Before the first deploy (or after, then redeploy), add these under **Settings → Environment
+   Variables** — same names as the Configuration table above, with two paths changed because
+   only `/tmp` is writable at runtime (everything else in the deployment bundle is read-only):
+   - `GROQ_API_KEY` — your key
+   - `CHROMA_DIR` = `/tmp/chroma`
+   - `HISTORY_DB` = `/tmp/history.sqlite3`
+   - the rest are optional — same defaults as local (see the Configuration table)
+4. Deploy.
+
+Storage lives in `/tmp`, which is not guaranteed to persist across cold starts — same
+by-design tradeoff as Render below (Chroma just re-seeds, freshness history is meant to be
+disposable).
+
+### Render
+
 `render.yaml` at the repo root is a [Render](https://render.com) Blueprint — it defines the
 build/start commands and every env var from the table above, so standing up a live instance
 is mostly clicking through Render's dashboard rather than configuring anything by hand:
@@ -294,6 +322,10 @@ is mostly clicking through Render's dashboard rather than configuring anything b
 4. Deploy. First boot re-seeds ChromaDB same as a fresh local run.
 
 Two things worth knowing about the free tier specifically:
+- **512MB RAM is tight.** ChromaDB's embedding model (`onnxruntime` + the ~80MB ONNX model,
+  loaded fully into memory to embed the 104 seed documents at startup) can exceed this on its
+  own before serving a single request — this is what "Ran out of memory" on a Render deploy
+  means. If you hit it, Vercel above is the fix, not a Render config change.
 - **Storage is ephemeral.** `app/data/` resets on every deploy and on the periodic restarts
   Render does for free services. That's fine here by design — Chroma re-seeds itself and the
   freshness history is meant to be disposable — but don't expect history to persist across

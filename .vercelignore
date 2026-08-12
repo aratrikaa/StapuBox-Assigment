@@ -1,0 +1,5 @@
+tests/
+.pytest_cache/
+app/data/
+AI-Product-Engineer Intern Assignment.pdf
+pdf_content.txt
