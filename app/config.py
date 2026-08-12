@@ -23,15 +23,30 @@ load_dotenv()
 ROOT = Path(__file__).resolve().parent.parent
 
 
+def _env(name: str, default: str) -> str:
+    """Read an env var, falling back to `default` when unset OR blank.
+
+    A hosting dashboard (Render, Vercel, ...) can leave a variable *present*
+    with an empty value rather than not set at all — `os.getenv(name,
+    default)` only falls back on the latter, so a blank-but-present
+    SPORTS_AGENT_TEMPERATURE crashed the whole app on `float("")` in
+    production. Every optional setting below goes through this instead.
+    """
+    raw = os.getenv(name)
+    if raw is None or raw.strip() == "":
+        return default
+    return raw.strip()
+
+
 def _bool(name: str, default: bool) -> bool:
     raw = os.getenv(name)
-    if raw is None:
+    if raw is None or raw.strip() == "":
         return default
     return raw.strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _path(name: str, default: str) -> Path:
-    p = Path(os.getenv(name, default))
+    p = Path(_env(name, default))
     return p if p.is_absolute() else ROOT / p
 
 
@@ -51,13 +66,13 @@ class Settings:
     # Groq does not document response_format support on compound models, so
     # the two calls are kept on different models rather than one shared one.
     model: str = field(
-        default_factory=lambda: os.getenv("SPORTS_AGENT_MODEL", "openai/gpt-oss-20b")
+        default_factory=lambda: _env("SPORTS_AGENT_MODEL", "openai/gpt-oss-20b")
     )
     research_model: str = field(
-        default_factory=lambda: os.getenv("SPORTS_AGENT_RESEARCH_MODEL", "groq/compound-mini")
+        default_factory=lambda: _env("SPORTS_AGENT_RESEARCH_MODEL", "groq/compound-mini")
     )
     temperature: float = field(
-        default_factory=lambda: float(os.getenv("SPORTS_AGENT_TEMPERATURE", "0.6"))
+        default_factory=lambda: float(_env("SPORTS_AGENT_TEMPERATURE", "0.6"))
     )
     # openai/gpt-oss-* models spend completion tokens on hidden chain-of-thought
     # before the final JSON. "low" is enough for a single structured quiz item
@@ -65,13 +80,13 @@ class Settings:
     # at "medium"/"high" the reasoning trace can consume the whole budget and
     # Groq's strict-mode validator then rejects the truncated, empty response.
     reasoning_effort: str = field(
-        default_factory=lambda: os.getenv("SPORTS_AGENT_REASONING_EFFORT", "low")
+        default_factory=lambda: _env("SPORTS_AGENT_REASONING_EFFORT", "low")
     )
 
     chroma_dir: Path = field(default_factory=lambda: _path("CHROMA_DIR", "app/data/chroma"))
     history_db: Path = field(default_factory=lambda: _path("HISTORY_DB", "app/data/history.sqlite3"))
     dedupe_threshold: float = field(
-        default_factory=lambda: float(os.getenv("DEDUPE_THRESHOLD", "0.55"))
+        default_factory=lambda: float(_env("DEDUPE_THRESHOLD", "0.55"))
     )
     enable_web_search: bool = field(default_factory=lambda: _bool("ENABLE_WEB_SEARCH", True))
 
@@ -81,7 +96,7 @@ class Settings:
     # how many generation calls are in flight at a time; regeneration and
     # research calls are unaffected.
     max_concurrent_generation: int = field(
-        default_factory=lambda: int(os.getenv("SPORTS_AGENT_MAX_CONCURRENCY", "2"))
+        default_factory=lambda: int(_env("SPORTS_AGENT_MAX_CONCURRENCY", "2"))
     )
 
     # How many stored items to feed back into the prompt as an "already used" avoid-list.
