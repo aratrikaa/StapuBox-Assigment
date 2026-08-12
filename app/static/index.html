@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sports Engagement Content Agent</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏆</text></svg>"
+    />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo">🏆</span>
+        <div>
+          <h1>Sports Engagement Content Agent</h1>
+          <p class="sub">
+            Grounded in live web search + a ChromaDB knowledge base · Instagram-ready output
+          </p>
+        </div>
+      </div>
+      <div id="status-chip" class="chip chip-muted">checking…</div>
+    </header>
+
+    <main>
+      <!-- ------------------------------ Controls ------------------------------ -->
+      <section class="panel controls" aria-label="Generation controls">
+        <div class="control">
+          <label for="sport">Sport</label>
+          <select id="sport"></select>
+          <input
+            id="sport-custom"
+            placeholder="Type a sport…"
+            autocomplete="off"
+            hidden
+          />
+          <p class="hint">10 sports built in — pick "Other" to type any sport.</p>
+        </div>
+
+        <div class="control">
+          <label for="difficulty">Difficulty</label>
+          <select id="difficulty">
+            <option>Easy</option>
+            <option selected>Medium</option>
+            <option>Hard</option>
+          </select>
+          <p class="hint">Ignored for opinion polls.</p>
+        </div>
+
+        <div class="control">
+          <label for="count">Batch size</label>
+          <select id="count">
+            <option value="4">4 items</option>
+            <option value="5" selected>5 items</option>
+          </select>
+          <p class="hint">Regenerate any item individually below.</p>
+        </div>
+
+        <div class="control control-wide">
+          <label>Content types</label>
+          <div id="types" class="type-grid"></div>
+          <label class="toggle">
+            <input type="checkbox" id="mixed" checked />
+            <span>Mix selected types in one batch</span>
+          </label>
+        </div>
+
+        <div class="control control-actions">
+          <button id="generate" class="btn btn-primary">Generate batch</button>
+          <button id="regenerate-batch" class="btn btn-ghost" disabled>Regenerate all</button>
+        </div>
+      </section>
+
+      <!-- ---------------------------- Live search ------------------------------ -->
+      <section class="panel search-panel" aria-label="Live web search">
+        <div class="control control-wide">
+          <label for="search-query">Live web search</label>
+          <div class="search-row">
+            <input
+              id="search-query"
+              placeholder="e.g. Who won the latest F1 Grand Prix?"
+              autocomplete="off"
+            />
+            <button id="search-go" class="btn btn-primary">Search</button>
+          </div>
+        </div>
+        <div id="search-result" class="search-result" hidden>
+          <pre id="search-answer" class="brief"></pre>
+          <ul id="search-sources" class="source-list"></ul>
+        </div>
+      </section>
+
+      <div id="alerts"></div>
+
+      <!-- ------------------------------ Results ------------------------------- -->
+      <section id="results" class="results" hidden>
+        <div class="results-head">
+          <div>
+            <h2 id="results-title">Batch</h2>
+            <p id="results-meta" class="sub"></p>
+          </div>
+          <button id="copy-all" class="btn btn-ghost">Copy all captions</button>
+        </div>
+        <div id="cards" class="cards"></div>
+      </section>
+
+      <!-- ------------------------------ Evidence ------------------------------ -->
+      <section id="evidence" class="panel evidence" hidden>
+        <details>
+          <summary>
+            <strong>Retrieved evidence for this batch</strong>
+            <span id="evidence-count" class="chip chip-muted"></span>
+          </summary>
+          <div class="evidence-body">
+            <div>
+              <h3>Web search <span class="chip chip-web">live</span></h3>
+              <pre id="web-brief" class="brief"></pre>
+              <ul id="web-sources" class="source-list"></ul>
+            </div>
+            <div>
+              <h3>ChromaDB knowledge base <span class="chip chip-kb">stable</span></h3>
+              <ul id="kb-sources" class="source-list"></ul>
+            </div>
+          </div>
+        </details>
+      </section>
+
+    </main>
+
+    <footer>
+      <span id="footer-stats"></span>
+      <button id="clear-history" class="link">Clear freshness history</button>
+    </footer>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

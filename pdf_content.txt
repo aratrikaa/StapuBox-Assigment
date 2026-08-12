@@ -1,0 +1,109 @@
+﻿--- PAGE 1 ---
+www.stapubox.com
+AI Product/Engineer Intern Assignment
+Project Title
+AI-Powered Sports Engagement Content Agent
+Objective
+Develop an AI agent capable of generating engaging, multi-format sports content for
+Instagram quizzes, polls and more. The system should leverage web search to ensure factual
+accuracy and fresh content, and should support multiple engagement formats beyond
+simple MCQs.
+Problem Statement
+Traditional sports content on social media is largely limited to news, highlights, and
+opinion-based posts. Even interactive formats are often limited to a single question type
+(MCQ), which becomes repetitive for followers over time.
+The goal of this project is to build an agent that generates multiple types of interactive
+content quizzes, true/false challenges, opinion polls, and fill-in-the-blank prompts so
+content creators can vary their engagement strategy, keep followers interested, and match
+the right format to the right platform surface (Story, Feed, Reel caption).
+All content generated is text-based no image generation or image sourcing is required.
+Output should be ready to drop into Instagram's native text/sticker tools (Quiz sticker, Poll
+sticker, caption text, etc.).
+Functional Requirements
+ΓùÅ Select a sport (e.g., Cricket, Football, Tennis, Badminton, Basketball, etc.)
+ΓùÅ Choose a difficulty level (Easy, Medium, Hard)
+ΓùÅ Choose a question/content type:
+Γùï Multiple Choice Question (MCQ)
+Γùï True / False
+Γùï This-or-That Poll (no single correct answer ΓÇö pure opinion/engagement)
+Γùï Fill in the Blank (with 4 answer options)
+Γùï Guess the Number
+ΓùÅ Generate a batch of 4ΓÇô5 items per request, optionally mixing types in one batch
+ΓùÅ Regenerate any individual item or the full batch on request
+ΓùÅ Produce factually accurate content using retrieved knowledge, except for
+This-or-That polls, which are opinion-based by design
+
+--- PAGE 2 ---
+www.stapubox.com
+AI Agent Requirements
+ΓùÅ Use web search to gather recent or fast-changing sports information (recent match
+results, records, transfers, tournament outcomes)
+ΓùÅ Combine retrieved context with the LLM to generate high-quality content for each
+format
+ΓùÅ Avoid hallucinations by grounding all factual claims in retrieved information; the
+agent should be able to cite which source (web search or vector DB) supported each
+answer
+ΓùÅ Generate fresh and diverse content on every request ΓÇö avoid repeating the same
+question/fact across sessions
+ΓùÅ Apply a type-specific generation template for each content type (an MCQ prompt
+template, a True/False template, a Poll template, etc.) rather than one generic
+prompt for everything
+ΓùÅ Validate every generated item against a schema for its type before returning it (e.g.,
+MCQ must have exactly 4 options and 1 correct answer; Poll must have exactly 2
+options and no correct answer; Guess-the-Number must have a numeric target plus
+an acceptable range)
+Expected Output
+1. Multiple Choice Question (MCQ)
+ΓùÅ Sport Name
+ΓùÅ Difficulty Level
+ΓùÅ Question
+ΓùÅ Four answer options (A, B, C, D)
+ΓùÅ Correct answer
+ΓùÅ Short explanation
+2. True / False
+ΓùÅ Sport Name
+ΓùÅ Difficulty Level
+ΓùÅ Statement
+ΓùÅ Correct answer (True/False)
+ΓùÅ Short explanation
+3. This-or-That Poll
+ΓùÅ Sport Name
+ΓùÅ Prompt (e.g., "Messi or Ronaldo ΓÇö who's the greater dribbler?")
+ΓùÅ Two options
+ΓùÅ No correct answer (flagged as opinion-based, not fact-checked)
+4. Fill in the Blank
+ΓùÅ Sport Name
+ΓùÅ Difficulty Level
+ΓùÅ Sentence with a blank
+ΓùÅ Four answer options
+ΓùÅ Correct answer
+
+--- PAGE 3 ---
+www.stapubox.com
+ΓùÅ Short explanation
+5. Guess the Number
+ΓùÅ Sport Name
+ΓùÅ Difficulty Level
+ΓùÅ Question (e.g., "How many runs did Virat Kohli score in the 2023 World Cup?")
+ΓùÅ Target number
+ΓùÅ Accepted tolerance range (e.g., ┬▒5)
+ΓùÅ Short explanation
+Expected Deliverables
+ΓùÅ Working AI-powered content generation dashboard supporting all five content types
+ΓùÅ Integration with web search for fresh/recent facts
+ΓùÅ ChromaDB-based knowledge retrieval for stable/historical facts
+ΓùÅ Type-specific prompt templates and output schema validation
+ΓùÅ Batch generation with mixed content types and per-item regeneration
+ΓùÅ Clean and well-documented code
+ΓùÅ README with setup instructions, project overview, and a description of the
+type-specific architecture
+Evaluation Criteria
+ΓùÅ Accuracy of generated factual content (MCQ, T/F, Fill-in-blank, Guess-the-Number)
+ΓùÅ Quality and relevance of retrieved information (web search + ChromaDB)
+ΓùÅ Correct schema/format handling across all five content types
+ΓùÅ Effective use of the AI agent (grounding, low hallucination rate, source citation)
+ΓùÅ Diversity and freshness of content across repeated requests
+ΓùÅ User experience and usability of the dashboard
+ΓùÅ Code quality and documentation
+Submit Here
+

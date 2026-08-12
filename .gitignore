@@ -1,0 +1,13 @@
+.env
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Runtime state: the Chroma index re-seeds itself and the history DB is local.
+app/data/chroma/
+app/data/*.sqlite3
+
+# Claude Code session-local state, not project config.
+.claude/scheduled_tasks.lock
