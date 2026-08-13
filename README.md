@@ -1,3 +1,13 @@
+---
+title: StapuBox Sports Agent
+emoji: 🏆
+colorFrom: blue
+colorTo: purple
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # AI-Powered Sports Engagement Content Agent
 
 Generates **Instagram-ready interactive sports content** in five formats — MCQ, True/False,
@@ -283,12 +293,44 @@ unfiltered search and web search covers the rest.
 
 ## Deployment
 
-Two free hosting options are set up. **Vercel is the recommended one** — its free Hobby tier
-gives 2GB RAM and a 300-second function timeout, comfortably covering both this app's
-ChromaDB embedding model and its slower rate-limited generation calls. Render's free tier
-caps at 512MB, which the embedding model alone can exceed at startup.
+Three free hosting options are set up. **Hugging Face Spaces is the recommended one** — it's
+a persistent Docker container with a normal, fully writable filesystem and 16GB RAM on the
+free CPU tier, which sidesteps every constraint the serverless options below ran into for
+this specific app (a locally-loaded embedding model, a local vector DB, and local SQLite state).
+
+### Hugging Face Spaces
+
+`Dockerfile` builds the app as a normal container; the YAML block at the very top of this
+README is Spaces' own config format (`sdk: docker`, `app_port: 7860`) — Spaces reads it
+directly from here.
+
+1. Create a free account at [huggingface.co](https://huggingface.co).
+2. **New** → **Space** → choose the **Docker** SDK → give it a name → **Create Space**.
+   This gives you a new git remote at `https://huggingface.co/spaces/<you>/<space-name>`.
+3. From this project's local clone:
+   ```bash
+   git remote add hf https://huggingface.co/spaces/<you>/<space-name>
+   git push hf main
+   ```
+   Git will prompt for your Hugging Face username and an access token (create one at
+   [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens), "Write" role) —
+   use the token as the password, not your account password.
+4. On the Space's **Settings** tab, add `GROQ_API_KEY` as a secret. `CHROMA_DIR` and
+   `HISTORY_DB` don't need overriding here — the container's filesystem is writable
+   throughout, unlike a serverless function's.
+5. The Space rebuilds automatically. Watch progress under the **Logs** tab.
+
+Free CPU Spaces do sleep after a period of inactivity and cold-start on the next visit,
+similar to Render's free tier — otherwise this is a normal always-on container while active.
 
 ### Vercel
+
+Its free Hobby tier gives 2GB RAM and a 300-second function timeout, comfortably covering
+both this app's ChromaDB embedding model and its slower rate-limited generation calls.
+Render's free tier caps at 512MB, which the embedding model alone can exceed at startup.
+Worth knowing going in: this app's local vector DB and SQLite state don't fit a serverless
+filesystem as cleanly as a normal container — Hugging Face Spaces above sidesteps that
+entirely, which is why it's the recommended option now.
 
 `vercel.json` sets the function's `maxDuration` to Vercel's Hobby maximum (300s). Vercel
 auto-detects `app/main.py`'s top-level `app` object as the entrypoint — no other config needed.

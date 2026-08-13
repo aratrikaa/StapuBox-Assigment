@@ -1,0 +1,14 @@
+.git/
+.gitignore
+.env
+tests/
+.pytest_cache/
+app/data/
+AI-Product-Engineer Intern Assignment.pdf
+pdf_content.txt
+render.yaml
+vercel.json
+.vercelignore
+.claude/
+__pycache__/
+*.pyc
