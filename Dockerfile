@@ -7,10 +7,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Hugging Face Spaces' Docker SDK expects the app on port 7860 by default;
-# run.py already honors $PORT (added for Render/Vercel), so this is the only
-# host-specific bit needed.
-ENV PORT=7860
-EXPOSE 7860
+# run.py already honors $PORT (added for Render/Vercel). Cloud Run injects
+# its own PORT=8080 into the running container regardless of this default —
+# it's just a sane fallback for running the image anywhere else.
+ENV PORT=8080
+EXPOSE 8080
 
 CMD ["python", "run.py"]

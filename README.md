@@ -1,13 +1,3 @@
----
-title: StapuBox Sports Agent
-emoji: 🏆
-colorFrom: blue
-colorTo: purple
-sdk: docker
-app_port: 7860
-pinned: false
----
-
 # AI-Powered Sports Engagement Content Agent
 
 Generates **Instagram-ready interactive sports content** in five formats — MCQ, True/False,
@@ -293,35 +283,29 @@ unfiltered search and web search covers the rest.
 
 ## Deployment
 
-Three free hosting options are set up. **Hugging Face Spaces is the recommended one** — it's
-a persistent Docker container with a normal, fully writable filesystem and 16GB RAM on the
-free CPU tier, which sidesteps every constraint the serverless options below ran into for
-this specific app (a locally-loaded embedding model, a local vector DB, and local SQLite state).
+Three hosting options are set up. **Cloud Run is the recommended one** — it runs `Dockerfile`
+as a normal container with a genuinely writable filesystem throughout (not just `/tmp`) and
+a generous always-free monthly usage tier, sidestepping the filesystem/memory constraints the
+serverless options below ran into for this specific app (a locally-loaded embedding model, a
+local vector DB, local SQLite state). The one real tradeoff: Google requires a billing account
+(card on file) to deploy at all, even though free-tier usage itself isn't charged.
 
-### Hugging Face Spaces
+### Google Cloud Run
 
-`Dockerfile` builds the app as a normal container; the YAML block at the very top of this
-README is Spaces' own config format (`sdk: docker`, `app_port: 7860`) — Spaces reads it
-directly from here.
+1. Create a Google Cloud account and project at [console.cloud.google.com](https://console.cloud.google.com),
+   and enable billing on it (required to deploy, not the same as being charged).
+2. Go to **Cloud Run** → **Create Service** → **Continuously deploy from a repository** →
+   connect your GitHub account → select this repo/branch. Cloud Run detects `Dockerfile`
+   automatically (build type: Dockerfile).
+3. **Important:** under the service's **Container** settings, raise **Memory** to at least
+   **1 GiB** (2 GiB to match what's been tested) — Cloud Run's default is too small for
+   ChromaDB's embedding model, the same failure mode that broke Render's free tier.
+4. Under **Variables & Secrets**, add `GROQ_API_KEY`. `CHROMA_DIR`/`HISTORY_DB` don't need
+   overriding — Cloud Run's container filesystem is writable throughout its lifetime.
+5. Allow unauthenticated invocations (so it's actually publicly reachable) and deploy.
 
-1. Create a free account at [huggingface.co](https://huggingface.co).
-2. **New** → **Space** → choose the **Docker** SDK → give it a name → **Create Space**.
-   This gives you a new git remote at `https://huggingface.co/spaces/<you>/<space-name>`.
-3. From this project's local clone:
-   ```bash
-   git remote add hf https://huggingface.co/spaces/<you>/<space-name>
-   git push hf main
-   ```
-   Git will prompt for your Hugging Face username and an access token (create one at
-   [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens), "Write" role) —
-   use the token as the password, not your account password.
-4. On the Space's **Settings** tab, add `GROQ_API_KEY` as a secret. `CHROMA_DIR` and
-   `HISTORY_DB` don't need overriding here — the container's filesystem is writable
-   throughout, unlike a serverless function's.
-5. The Space rebuilds automatically. Watch progress under the **Logs** tab.
-
-Free CPU Spaces do sleep after a period of inactivity and cold-start on the next visit,
-similar to Render's free tier — otherwise this is a normal always-on container while active.
+Storage resets whenever Cloud Run spins up a fresh instance (scale-to-zero, new revision),
+same by-design tradeoff as the other hosts below — Chroma just re-seeds itself.
 
 ### Vercel
 
